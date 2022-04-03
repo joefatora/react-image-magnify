@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  node: circleci/node@4.7
+  node: circleci/node@5.0.2
 
 executors:
   default:
@@ -67,3 +67,5 @@ workflows:
             branches:
               only:
                 - master
+                - alpha
+                - beta
