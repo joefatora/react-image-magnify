@@ -2,9 +2,9 @@ import { primaryInput } from 'detect-it';
 import {
     CSSProperties,
     MouseEvent,
-    SyntheticEvent,
     TouchEvent,
     useEffect,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -39,6 +39,11 @@ import type {
     ContainerDimensions,
 } from 'src/types';
 
+const shouldShowHint = (activationInteractionHint: ReactImageMagnifyProps['activationInteractionHint']): boolean => (
+    activationInteractionHint === INTERACTIONS.click
+    || activationInteractionHint === INTERACTIONS.hover
+);
+
 export const ReactImageMagnify = (props: ReactImageMagnifyProps): JSX.Element => {
     const {
         activationInteractionHint,
@@ -60,8 +65,10 @@ export const ReactImageMagnify = (props: ReactImageMagnifyProps): JSX.Element =>
         style,
         ...rest
     } = props;
+    const { onLoad, ...usabledImageProps } = imageProps;
     const isZoomClickable = activationInteractionHint === INTERACTIONS.click;
 
+    // Prop Validation
     if (
         activationInteractionHint
         && activationInteractionMouse === INTERACTIONS.click
@@ -202,7 +209,7 @@ export const ReactImageMagnify = (props: ReactImageMagnifyProps): JSX.Element =>
         setImageLoaded(true);
     };
 
-    const handleImageLoadOrComplete = (e: SyntheticEvent<HTMLImageElement, Event>): void => {
+    const handleImageLoadOrComplete = (e: Event): void => {
         if (!imageLoaded) {
             if (smallImage.onLoad) {
                 smallImage.onLoad(e);
@@ -212,27 +219,36 @@ export const ReactImageMagnify = (props: ReactImageMagnifyProps): JSX.Element =>
         }
     };
 
-    const HintComponentOrNull = (
-        activationInteractionHint === INTERACTIONS.click
-        || activationInteractionHint === INTERACTIONS.hover
-    ) ? (
-        <HintComponent
-            {...hintProps}
-            hintTextMouse={hintProps?.hintTextMouse || `${capitalize(activationInteractionHint)} to Zoom`}
-            hintTextTouch={hintProps?.hintTextTouch || 'Long-Touch to Zoom'}
-            isMouseDetected={isMouseDetected}
-            isTouchDetected={isTouchDetected}
-            style={generateHintStyle(hintProps?.style)}
-            onClick={lockedByHintInteraction ? handleHintClick : undefined}
-            onTouchEnd={lockedByHintInteraction ? handleHintTouchEnd : undefined}
-        />
+    const HintComponentOrNull = activationInteractionHint && shouldShowHint(activationInteractionHint)
+        ? (
+            <HintComponent
+                {...hintProps}
+                hintTextMouse={hintProps?.hintTextMouse || `${capitalize(activationInteractionHint)} to Zoom`}
+                hintTextTouch={hintProps?.hintTextTouch || 'Long-Touch to Zoom'}
+                isMouseDetected={isMouseDetected}
+                isTouchDetected={isTouchDetected}
+                style={generateHintStyle(hintProps?.style)}
+                onClick={lockedByHintInteraction ? handleHintClick : undefined}
+                onTouchEnd={lockedByHintInteraction ? handleHintTouchEnd : undefined}
+            />
         ) : null;
 
     const LensComponent = LensComponentProp || shouldUsePositiveSpaceLens ? PositiveSpaceLens : NegativeSpaceLens;
 
-    useEffect(() => {
-        if (imageRef.current?.complete && !imageLoaded) {
+    ///
+    /// More Effects
+    ///
+
+    useLayoutEffect(() => {
+        if (imageRef.current?.complete) {
             onImageComplete();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (imageRef.current) {
+            imageRef.current.onload = handleImageLoadOrComplete;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -251,11 +267,10 @@ export const ReactImageMagnify = (props: ReactImageMagnifyProps): JSX.Element =>
             {({ position, isActive, isPositionOutside }): JSX.Element => (
                 <>
                     <ImageComponent
-                        {...imageProps}
+                        {...usabledImageProps}
                         alt={smallImage.alt}
                         ref={imageRef}
                         style={getSmallImageStyle(smallImage, imageProps.style)}
-                        onLoad={handleImageLoadOrComplete}
                     />
                     {imageLoaded && (
                         <>
