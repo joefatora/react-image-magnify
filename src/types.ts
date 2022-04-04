@@ -73,7 +73,7 @@ export type MagnifiedImageProps = DetailedHTMLProps<ImgHTMLAttributes<HTMLImageE
 export type ImageProps = Omit<DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement>, 'height' | 'width' | 'onLoad'> & {
     height?: string | number;
     width?: string | number;
-    onLoad: (e: Event) => void;
+    onLoad?: (e: Event) => void;
 }
 
 export interface LensProps extends HTMLProps<HTMLDivElement> {
