@@ -14,7 +14,8 @@ jobs:
       NODE_ENV: development
     steps:
       - checkout
-      - node/install-packages
+      - node/install-packages:
+          override-ci-command: npm install --force
       - run: npm run build
       - persist_to_workspace:
           root: .
@@ -28,7 +29,8 @@ jobs:
     steps:
       - run: apt update && apt install -y git
       - checkout
-      - node/install-packages
+      - node/install-packages:
+          override-ci-command: npm install --force
       - attach_workspace:
           at: .
       - run: npm run build:docs
@@ -41,7 +43,8 @@ jobs:
       NODE_ENV: development
     steps:
       - checkout
-      - node/install-packages
+      - node/install-packages:
+          override-ci-command: npm install --force
       - run: npm run test
 
 workflows:
