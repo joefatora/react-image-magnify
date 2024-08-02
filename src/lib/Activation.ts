@@ -43,7 +43,6 @@ export class Activation {
             const timer = timers.pop();
 
             if (timer?.id) {
-                // @ts-expect-error
                 clearTimeout(timer.id);
             }
         }
@@ -52,7 +51,6 @@ export class Activation {
     clearTimer(timerName: string): void {
         this.timers.forEach((timer) => {
             if (timer.name === timerName) {
-                // @ts-expect-error
                 clearTimeout(timer.id);
             }
         });
